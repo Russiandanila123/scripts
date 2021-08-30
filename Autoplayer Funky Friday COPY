@@ -34,7 +34,7 @@ Information:
     You can find contact information on the GitHub repository (https://github.com/wally-rblx/funky-friday-autoplay)
 --]]
 
-local library = loadstring(game:HttpGet("https://gist.githubusercontent.com/Russiandanila123/fd00fb8dc4bcdceebe80954444ee8a12/raw/51aa98af0f6492e4d045bd5def9eb89abda29f40/gistfile1.txt"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Russiandanila123/scripts/main/Autoplayer%20Funky%20Friday%20CONTENT%20COPY"))()
 
 local framework, scrollHandler
 while true do
