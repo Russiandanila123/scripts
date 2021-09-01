@@ -31,7 +31,7 @@ local UIConfig = {
 	Keybind = Enum.KeyCode.RightShift
 }
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AlexR32/Roblox/main/BracketV3.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Russiandanila123/scripts/main/Blackhawk%20silent%20aimbot%20COPY%20CONTENT"))()
 local Window = Library:CreateWindow(UIConfig, game:GetService("CoreGui"))
 
 local MainTab = Window:CreateTab("Main")
