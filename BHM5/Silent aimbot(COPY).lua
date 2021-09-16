@@ -39,6 +39,10 @@ getgenv().Config = {
 	FieldOfView = 100,
 	TargetMode = "NPC",
 	AimHitbox = "Head",
+
+	NoRecoil = false,
+	EnableSpeed = false,
+	Speed = 100
 }
 end
 
@@ -58,6 +62,7 @@ local AimbotSection = MainTab:CreateSection("Aimbot")
 local CircleSection = MainTab:CreateSection("Circle")
 local NPCESPSection = MainTab:CreateSection("NPC ESP")
 local ESPSection = MainTab:CreateSection("Player ESP")
+local OtherSection = MainTab:CreateSection("Other")
 local MenuSection = UITab:CreateSection("Menu")
 local BackgroundSection = UITab:CreateSection("Background")
 
@@ -176,6 +181,21 @@ local Colorpicker = ESPSection:CreateColorpicker("ESP Color", function(Color)
 	Config.Color = Color
 end)
 Colorpicker:UpdateColor(Config.Color)
+
+local SpeedToggle = OtherSection:CreateToggle("Enabled Speedhack", nil, function(State)
+	Config.EnableSpeed = State
+end)
+SpeedToggle:SetState(Config.EnableSpeed)
+
+local NoRecoilToggle = OtherSection:CreateToggle("No Recoil", nil, function(State)
+	Config.NoRecoil = State
+end)
+NoRecoilToggle:SetState(Config.NoRecoil)
+
+local SpeedSlider = OtherSection:CreateSlider("Speedhack Value", 0,1000,nil,true, function(Value)
+	Config.Speed = Value
+end)
+SpeedSlider:SetValue(Config.Speed)
 
 
 local UIToggle = MenuSection:CreateToggle("UI Toggle", nil, function(State)
@@ -451,27 +471,53 @@ function GetTarget()
 	return ClosestPlayer
 end
 
--- silent aim
-local function returnHit(hit, args)
-	local Camera = Workspace.CurrentCamera
-	local CameraPosition = Camera.CFrame.Position
-	if args[1].Origin == CameraPosition then
-		args[1] = Ray.new(CameraPosition, hit.Position - CameraPosition)
-		return
-	end
+local function GetNilScript(Name)
+    for _,Instance in pairs(getnilinstances()) do
+        if Instance.Name == Name then
+            return Instance
+        end 
+    end
 end
+
+-- hooks
+humanoidHook = hookfunction(require(GetNilScript("HumanoidClass")).LateUpdate, function(...)
+    local args = {...}
+	if Config.EnableSpeed then
+		args[1]._speed = Config.Speed
+		args[1].fly = 0
+		args[1].fall = false -- just in case
+		args[1].Falling = false
+	end
+    return humanoidHook(unpack(args))
+end)
+
+cameraHook = hookfunction(require(GetNilScript("CharacterCamera")).Update, function(...)
+    local args = {...}
+	if Config.NoRecoil then
+    	args[1]._recoil = 0
+		args[1]._shake = 0
+	end
+	if Config.EnableSpeed then
+		args[1]._bob = 0
+		args[1]._shake = 0
+	end
+    return cameraHook(unpack(args))
+end)
 
 namecall = hookmetamethod(game, "__namecall", function(self, ...)
     local namecallmethod = getnamecallmethod()
     local args = {...}
     if namecallmethod == "FindPartOnRayWithIgnoreList" then
-        if hit then
-            returnHit(hit, args)
+		local Camera = Workspace.CurrentCamera
+		local CameraPosition = Camera.CFrame.Position
+        if target and args[1].Origin == CameraPosition then
+			args[1] = Ray.new(CameraPosition, (target.Position - CameraPosition))
         end
     end
     return namecall(self, unpack(args))
 end)
 
+-- render
 local Circle = Drawing.new("Circle")
 RunService.Heartbeat:Connect(function()
 	Circle.Visible = Config.CircleVisible
@@ -485,9 +531,9 @@ RunService.Heartbeat:Connect(function()
     Circle.Position = UserInputService:GetMouseLocation()
 
 	if Config.SilentAim then
-		hit = GetTarget()
+		target = GetTarget()
 	else
-		hit = nil
+		target = nil
 	end
 
 	if Config.Aimbot then
